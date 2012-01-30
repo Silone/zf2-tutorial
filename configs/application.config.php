@@ -5,6 +5,7 @@ return array(
     ),
     'modules' => array(
         'Application',
+        'Album',
     ),
     'module_manager_options' => array( 
         'enable_config_cache'      => false,
