@@ -1,0 +1,31 @@
+<?php
+// Define application environment
+defined('APPLICATION_ENV')
+    || define('APPLICATION_ENV', (getenv('APPLICATION_ENV') ? getenv('APPLICATION_ENV') : 'production'));
+
+// Ensure ZF is on the include path
+set_include_path(implode(PATH_SEPARATOR, array(
+    realpath(__DIR__ . '/../library'),
+    get_include_path(),
+)));
+
+require_once 'Zend/Loader/AutoloaderFactory.php';
+Zend\Loader\AutoloaderFactory::factory(array('Zend\Loader\StandardAutoloader' => array()));
+
+$appConfig = new Zend\Config\Config(include __DIR__ . '/../configs/application.config.php');
+
+$moduleLoader = new Zend\Loader\ModuleAutoloader($appConfig['module_paths']);
+$moduleLoader->register();
+
+$moduleManager = new Zend\Module\Manager(
+    $appConfig['modules'],
+    new Zend\Module\ManagerOptions($appConfig['module_manager_options'])
+);
+
+// Create application, bootstrap, and run
+$config         = $moduleManager->getMergedConfig();
+$bootstrap      = new $config->bootstrap_class($moduleManager);
+$application    = new Zend\Mvc\Application;
+$bootstrap->bootstrap($application);
+
+$application->run()->send();

@@ -1,0 +1,30 @@
+<?php
+
+$baseUrl = rtrim($this->url(array(), array('name' => 'home')), '/');
+
+// Append the default stylesheet
+$this->headLink()->appendStylesheet($baseUrl . '/css/default.css');
+
+?>
+<div id="zf2-welcome">
+    <h1>Welcome to Zend Framework 2.0</h1>
+    <div class="important">Important: Zend Framework 2.0 beta1 is is not considered of production quality, and is provided solely for testing and research purposes. Use at your own risk. </div>
+    <div id="zf2-logo">
+        <img src="<?php echo $baseUrl ?>/images/zf2-logo.png" alt="Zend Framework 2.0" />
+    </div>
+    <div id="zf2-info">
+        <p>
+            This is the default Zend Framework 2.0 on DevCloud home page.
+        </p>
+        <p>
+            You can learn more about developing applications with Zend Framework 2.0
+            using the following resources:
+        </p>
+        <ul>
+            <li><a href="http://packages.zendframework.com/docs/latest/manual/en/zend.mvc.quick-start.html">Zend Framework 2.0 MVC Quickstart</a> in the Zend Framework Manual</li>
+            <li><a href="http://akrabat.com/getting-started-with-zend-framework-2/" target="_blank">Getting started with Zend Framework 2 (beta1) Tutorial</a> by Rob Allen</li>
+            <li><a href="http://www.slideshare.net/weierophinney/zend-framework-20-patterns-tutorial" target="_blank">Zend Framework 2.0 Patterns Tutorial</a> by Matthew Weier O'Phinney</li>
+            <li><a href="http://framework.zend.com/wiki/display/ZFDEV2/Zend+DI+QuickStart" target="_blank">Zend DI Quickstart</a> in the Zend Framework Wiki</li>
+        </ul>
+    </div>
+</div>

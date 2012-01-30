@@ -1,0 +1,41 @@
+@IMPORT url("http://fonts.googleapis.com/css?family=Linden+Hill");
+
+body {
+    font-family: "Linden Hill", Georgia, serif; 
+	padding: 50px 0;
+	text-align: center;
+}
+
+h1 { 
+	font-size: 40px;
+}
+
+div.important {
+	clear: both;
+	color: #aa2211;
+	width: 500px;
+	margin: 20px auto;
+}
+
+#zf2-welcome {
+	width: 750px;
+    margin: 0 auto;
+}
+
+#zf2-logo {
+    width: 300px;
+	float: left;
+    padding: 10px;
+}
+
+#zf2-info {
+	width: 390px;
+	float: right;
+	text-align: left;
+    padding: 5px 15px;
+}
+
+#zf2-info ul {
+	padding-left: 20px;
+}
+
