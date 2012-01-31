@@ -1,7 +1,7 @@
 <?php
 return array(
     'module_paths' => array(
-        realpath(__DIR__ . '/../modules'),
+        realpath(__DIR__ . '/../module'),
     ),
     'modules' => array(
         'Application',

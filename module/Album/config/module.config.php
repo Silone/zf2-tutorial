@@ -13,8 +13,7 @@ return array(
             'Album\Model\AlbumTable' => array(
                 'parameters' => array(
                     'config' => 'Zend\Db\Adapter\Mysqli',
-                ),
-            ),
+            )),
             'Zend\Db\Adapter\Mysqli' => array(
                 'parameters' => array(
                     'config' => array(
@@ -36,29 +35,4 @@ return array(
             ),
         ),
     ),
-    /*
-    'routes' => array(
-        'default' => array(
-            'type'    => 'Zend\Mvc\Router\Http\Regex',
-            'options' => array(
-                'regex'    => '/(?P<controller>[^/]+)(/(?P<action>[^/]+)?)?',
-                'spec'     => '/%controller%/%action%',
-                'defaults' => array(
-                    'controller' => 'error',
-                    'action'     => 'index',
-                ),
-            ),
-        ),
-        'home' => array(
-            'type' => 'Zend\Mvc\Router\Http\Literal',
-            'options' => array(
-                'route'    => '/',
-                'defaults' => array(
-                    'controller' => 'index',
-                    'action'     => 'index',
-                ),
-            ),
-        ),
-    ),
-    */
 );
