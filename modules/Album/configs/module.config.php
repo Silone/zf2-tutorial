@@ -36,7 +36,7 @@ return array(
             ),
         ),
     ),
-/*
+    /*
     'routes' => array(
         'default' => array(
             'type'    => 'Zend\Mvc\Router\Http\Regex',
@@ -60,5 +60,5 @@ return array(
             ),
         ),
     ),
-*/
+    */
 );

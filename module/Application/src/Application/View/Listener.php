@@ -7,7 +7,7 @@ use ArrayAccess,
     Zend\EventManager\EventCollection,
     Zend\EventManager\ListenerAggregate,
     Zend\EventManager\StaticEventCollection,
-    Zend\Http\Response,
+    Zend\Http\PhpEnvironment\Response,
     Zend\Mvc\Application,
     Zend\Mvc\MvcEvent,
     Zend\View\Renderer;
@@ -40,8 +40,8 @@ class Listener implements ListenerAggregate
     public function attach(EventCollection $events)
     {
         $this->listeners[] = $events->attach('dispatch.error', array($this, 'renderError'));
-        $this->listeners[] = $events->attach('dispatch', array($this, 'render404'), -80);
-        $this->listeners[] = $events->attach('dispatch', array($this, 'renderLayout'), -1000);
+        $this->listeners[] = $events->attach('dispatch', array($this, 'render404'), -1000);
+        $this->listeners[] = $events->attach('dispatch', array($this, 'renderLayout'), -80);
     }
 
     public function detach(EventCollection $events)
@@ -55,10 +55,6 @@ class Listener implements ListenerAggregate
 
     public function registerStaticListeners(StaticEventCollection $events, $locator)
     {
-        $ident   = 'Application\Controller\PageController';
-        $handler = $events->attach($ident, 'dispatch', array($this, 'renderPageController'), -50);
-        $this->staticListeners[] = array($ident, $handler);
-
         $ident   = 'Zend\Mvc\Controller\ActionController';
         $handler = $events->attach($ident, 'dispatch', array($this, 'renderView'), -50);
         $this->staticListeners[] = array($ident, $handler);
@@ -71,39 +67,6 @@ class Listener implements ListenerAggregate
             $events->detach($id, $handler);
             unset($this->staticListeners[$i]);
         }
-    }
-
-    public function renderPageController(MvcEvent $e)
-    {
-        $page = $e->getResult();
-        if ($page instanceof Response) {
-            return;
-        }
-
-        $response = $e->getResponse();
-        if ($response->isNotFound()) {
-            return;
-        } 
-
-        $routeMatch = $e->getRouteMatch();
-
-        if (!$routeMatch) {
-            $page = '404';
-        } else {
-            $page = $routeMatch->getParam('action', '404');
-        }
-
-        if ($page == '404') {
-            $response->setStatusCode(404);
-        }
-
-        $script     = 'pages/' . $page . '.phtml';
-
-        // Action content
-        $content    = $this->view->render($script);
-        $e->setResult($content);
-
-        return $this->renderLayout($e);
     }
 
     public function renderView(MvcEvent $e)
@@ -127,7 +90,7 @@ class Listener implements ListenerAggregate
 
         $content    = $this->view->render($script, $vars);
 
-        $e->setResult($content);
+        $e->setParam('content', $content);
         return $content;
     }
 
@@ -142,13 +105,15 @@ class Listener implements ListenerAggregate
             return $response;
         }
 
-        $footer   = $e->getParam('footer', false);
-        $vars     = array('footer' => $footer);
+        $vars = $e->getResult();
+        if (is_scalar($vars)) {
+            $vars = array('content' => $vars);
+        } elseif (is_object($vars) && !$vars instanceof ArrayAccess) {
+            $vars = (array) $vars;
+        }
 
         if (false !== ($contentParam = $e->getParam('content', false))) {
             $vars['content'] = $contentParam;
-        } else {
-            $vars['content'] = $e->getResult();
         }
 
         $layout   = $this->view->render($this->layout, $vars);
@@ -169,9 +134,13 @@ class Listener implements ListenerAggregate
             return;
         }
 
-        $vars = array('message' => 'Page not found.');
+        $vars = array(
+            'message'            => 'Page not found.',
+            'exception'          => $e->getParam('exception'),
+            'display_exceptions' => $this->displayExceptions(),
+        );
 
-        $content = $this->view->render('pages/404.phtml', $vars);
+        $content = $this->view->render('error/404.phtml', $vars);
 
         $e->setResult($content);
 
@@ -181,7 +150,6 @@ class Listener implements ListenerAggregate
     public function renderError(MvcEvent $e)
     {
         $error    = $e->getError();
-        $app      = $e->getTarget();
         $response = $e->getResponse();
         if (!$response) {
             $response = new Response();
@@ -192,14 +160,15 @@ class Listener implements ListenerAggregate
             case Application::ERROR_CONTROLLER_NOT_FOUND:
             case Application::ERROR_CONTROLLER_INVALID:
                 $vars = array(
-                    'message' => 'Page not found.',
+                    'message'            => 'Page not found.',
+                    'exception'          => $e->getParam('exception'),
+                    'display_exceptions' => $this->displayExceptions(),
                 );
                 $response->setStatusCode(404);
                 break;
 
             case Application::ERROR_EXCEPTION:
             default:
-                $exception = $e->getParam('exception');
                 $vars = array(
                     'message'            => 'An error occurred during execution; please try again later.',
                     'exception'          => $e->getParam('exception'),

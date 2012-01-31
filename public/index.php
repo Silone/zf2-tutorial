@@ -1,31 +1,20 @@
 <?php
-// Define application environment
-defined('APPLICATION_ENV')
-    || define('APPLICATION_ENV', (getenv('APPLICATION_ENV') ? getenv('APPLICATION_ENV') : 'production'));
-
-// Ensure ZF is on the include path
-set_include_path(implode(PATH_SEPARATOR, array(
-    realpath(__DIR__ . '/../library'),
-    get_include_path(),
-)));
-
-require_once 'Zend/Loader/AutoloaderFactory.php';
+chdir(dirname(__DIR__));
+require_once (getenv('ZF2_PATH') ?: 'vendor/ZendFramework/library') . '/Zend/Loader/AutoloaderFactory.php';
 Zend\Loader\AutoloaderFactory::factory(array('Zend\Loader\StandardAutoloader' => array()));
 
-$appConfig = new Zend\Config\Config(include __DIR__ . '/../configs/application.config.php');
+$appConfig = include 'config/application.config.php';
 
-$moduleLoader = new Zend\Loader\ModuleAutoloader($appConfig['module_paths']);
-$moduleLoader->register();
+$listenerOptions  = new Zend\Module\Listener\ListenerOptions($appConfig['module_listener_options']);
+$defaultListeners = new Zend\Module\Listener\DefaultListenerAggregate($listenerOptions);
+$defaultListeners->getConfigListener()->addConfigGlobPath('config/autoload/*.config.php');
 
-$moduleManager = new Zend\Module\Manager(
-    $appConfig['modules'],
-    new Zend\Module\ManagerOptions($appConfig['module_manager_options'])
-);
+$moduleManager = new Zend\Module\Manager($appConfig['modules']);
+$moduleManager->events()->attachAggregate($defaultListeners);
+$moduleManager->loadModules();
 
 // Create application, bootstrap, and run
-$config         = $moduleManager->getMergedConfig();
-$bootstrap      = new $config->bootstrap_class($moduleManager);
-$application    = new Zend\Mvc\Application;
+$bootstrap   = new Zend\Mvc\Bootstrap($defaultListeners->getConfigListener()->getMergedConfig());
+$application = new Zend\Mvc\Application;
 $bootstrap->bootstrap($application);
-
 $application->run()->send();

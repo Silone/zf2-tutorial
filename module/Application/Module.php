@@ -3,27 +3,23 @@
 namespace Application;
 
 use Zend\Module\Manager,
-    Zend\Config\Config,
     Zend\EventManager\StaticEventManager,
-    Zend\Loader\AutoloaderFactory,
-    Zend\Mvc\Router\Http\TreeRouteStack as Router,
-    Zend\Http\Request as Request;
+    Zend\Module\Consumer\AutoloaderProvider;
 
-class Module
+class Module implements AutoloaderProvider
 {
     protected $view;
     protected $viewListener;
 
     public function init(Manager $moduleManager)
     {
-        $this->initAutoloader($moduleManager->getOptions()->getApplicationEnv());
         $events = StaticEventManager::getInstance();
         $events->attach('bootstrap', 'bootstrap', array($this, 'initializeView'), 100);
     }
 
-    protected function initAutoloader($env = null)
+    public function getAutoloaderConfig()
     {
-        AutoloaderFactory::factory(array(
+        return array(
             'Zend\Loader\ClassMapAutoloader' => array(
                 __DIR__ . '/autoload_classmap.php',
             ),
@@ -32,19 +28,19 @@ class Module
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__,
                 ),
             ),
-        ));
+        );
     }
 
     public function getConfig()
     {
-        return new Config(include __DIR__ . '/configs/module.config.php');
+        return include __DIR__ . '/config/module.config.php';
     }
-
+    
     public function initializeView($e)
     {
         $app          = $e->getParam('application');
         $locator      = $app->getLocator();
-        $config       = $e->getParam('modules')->getMergedConfig();
+        $config       = $e->getParam('config');
         $view         = $this->getView($app);
         $viewListener = $this->getViewListener($view, $config);
         $app->events()->attachAggregate($viewListener);
@@ -71,14 +67,16 @@ class Module
             return $this->view;
         }
 
-        $di     = $app->getLocator();
-        $view   = $di->get('view');
-        $url    = $view->plugin('url');
-        $url->setRouter($app->getRouter());
+        $locator = $app->getLocator();
+        $view    = $locator->get('view');
 
-        $view->plugin('headTitle')->setSeparator(' - ')
-                                  ->setAutoEscape(false)
-                                  ->append('Application');
+        // Set up view helpers        
+        $view->plugin('url')->setRouter($app->getRouter());
+        $view->doctype()->setDoctype('HTML5');
+
+        $basePath = $app->getRequest()->getBaseUrl();
+        $view->plugin('basePath')->setBasePath($basePath);
+
         $this->view = $view;
         return $view;
     }
