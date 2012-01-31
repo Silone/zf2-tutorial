@@ -2,6 +2,9 @@
 return array(
     'di' => array(
         'instance' => array(
+            'alias' => array(
+                'album' => 'Album\Controller\AlbumController',
+            ),
             'Zend\View\PhpRenderer' => array(
                 'parameters' => array(
                     'resolver' => 'Zend\View\TemplatePathStack',
